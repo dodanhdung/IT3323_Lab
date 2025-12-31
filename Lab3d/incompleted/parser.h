@@ -48,9 +48,9 @@ void compileArguments(ObjectNode* paramList);
 void compileCondition(void);
 Type* compileExpression(void);
 Type* compileExpression2(void);
-Type* compileExpression3(Type* argType1);
+Type* compileExpression3(void);
 Type* compileTerm(void);
-Type* compileTerm2(Type* argType2);
+void compileTerm2(void);
 Type* compileFactor(void);
 Type* compileIndexes(Type* arrayType);
 

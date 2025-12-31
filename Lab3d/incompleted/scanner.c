@@ -101,7 +101,6 @@ Token* readConstChar(void) {
     
   token->string[0] = currentChar;
   token->string[1] = '\0';
-  token->value = currentChar;
 
   readChar();
   if (currentChar == EOF) {

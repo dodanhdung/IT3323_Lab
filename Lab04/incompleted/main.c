@@ -6,15 +6,26 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "reader.h"
 #include "parser.h"
 
+void printUsage(void) {
+  printf("Usage: kplc input\n");
+  printf("   input: input kpl program\n");
+  printf("   output: executable\n");
+  printf("   -dump: code dump\n");
+}
+
+
 /******************************************************************/
 
 int main(int argc, char *argv[]) {
+
   if (argc <= 1) {
-    printf("parser: no input file.\n");
+    printf("kplc: no input file.\n");
+    printUsage();
     return -1;
   }
 
@@ -22,6 +33,8 @@ int main(int argc, char *argv[]) {
     printf("Can\'t read input file!\n");
     return -1;
   }
-    
+
   return 0;
 }
+//gcc -I. -o main scanner.c reader.c charcode.c token.c error.c main.c debug.c parser.c semantics.c symtab.c
+//./main ../tests/example1.kpl
