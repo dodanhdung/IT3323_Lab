@@ -412,7 +412,7 @@ Type* compileLValue(void) {
 
   switch (var->kind) {
   case OBJ_VARIABLE:
-    genVariableAddress(var); // Đã hiện thực
+    genVariableAddress(var); 
     if (var->varAttrs->type->typeClass == TP_ARRAY) {
       varType = compileIndexes(var->varAttrs->type);
     }
@@ -420,11 +420,11 @@ Type* compileLValue(void) {
       varType = var->varAttrs->type;
     break;
   case OBJ_PARAMETER:
-    genVariableAddress(var); // Đã hiện thực
+    genVariableAddress(var); 
     varType = var->paramAttrs->type;
     break;
   case OBJ_FUNCTION:
-    genVariableAddress(var); // Đã hiện thực
+    genVariableAddress(var); 
     varType = var->funcAttrs->returnType;
     break;
   default: 
@@ -437,18 +437,16 @@ void compileAssignSt(void) {
   Type* varType;
   Type* expType;
 
-  varType = compileLValue(); // Đẩy địa chỉ lên stack
+  varType = compileLValue(); 
   
   eat(SB_ASSIGN);
-  expType = compileExpression(); // Đẩy giá trị lên stack
+  expType = compileExpression(); 
   checkTypeEquality(varType, expType);
   
-  genST(); // Store: lưu giá trị vào địa chỉ
+  genST(); 
 }
 
 void compileCallSt(void) {
-  // Generate code for call-statement
-  // TEMPORARY. halt
   Object* proc;
 
   eat(KW_CALL);
@@ -476,85 +474,70 @@ void compileIfSt(void) {
   compileCondition();
   eat(KW_THEN);
   
-  Instruction* fj = genFJ(DC_VALUE); // Nhảy nếu điều kiện sai
+  Instruction* fj = genFJ(DC_VALUE); 
   compileStatement();
   
   if (lookAhead->tokenType == KW_ELSE) {
-    Instruction* j = genJ(DC_VALUE); // Nhảy qua phần Else sau khi xong phần Then
-    updateFJ(fj, getCurrentCodeAddress()); // Cập nhật địa chỉ nhảy sai
+    Instruction* j = genJ(DC_VALUE); 
+    updateFJ(fj, getCurrentCodeAddress()); 
     eat(KW_ELSE);
     compileStatement();
-    updateJ(j, getCurrentCodeAddress()); // Cập nhật địa chỉ nhảy xong Then
+    updateJ(j, getCurrentCodeAddress()); 
   } else {
     updateFJ(fj, getCurrentCodeAddress());
   }
 }
 
 void compileWhileSt(void) {
-  CodeAddress label1 = getCurrentCodeAddress(); // Đánh dấu đầu vòng lặp
+  CodeAddress label1 = getCurrentCodeAddress(); 
   eat(KW_WHILE);
   compileCondition();
   
-  Instruction* fj = genFJ(DC_VALUE); // Nhảy ra ngoài nếu sai
+  Instruction* fj = genFJ(DC_VALUE); 
   eat(KW_DO);
   compileStatement();
   
-  genJ(label1); // Quay lại đầu vòng lặp
-  updateFJ(fj, getCurrentCodeAddress()); // Cập nhật đích nhảy ra ngoài
+  genJ(label1); 
+  updateFJ(fj, getCurrentCodeAddress()); 
 }
 
 void compileForSt(void) {
-  // Cấu trúc: FOR <var> := <exp1> TO <exp2> DO <stmt>
   
   eat(KW_FOR);
   
   eat(TK_IDENT);
   Object* var = checkDeclaredVariable(currentToken->string);
   
-  genVariableAddress(var); // Stack: [addr]
-  genCV();                 // [1] Duplicate address. Stack: [addr, addr]
+  genVariableAddress(var); 
+  genCV();               
   
   eat(SB_ASSIGN);
   Type* type1 = compileExpression();
   checkTypeEquality(var->varAttrs->type, type1);
-  genST();                 // [2] Store init value. Stack: [addr]
+  genST();                
   
   CodeAddress labelLoop = getCurrentCodeAddress();
-  
-  // So sánh: var <= exp2
-  genCV();                 // [3] Duplicate addr. Stack: [addr, addr]
-  genLI();                 // [4] Load Value. Stack: [addr, val]
-  
-  // [FIX] Capture the address after loading the value to jump here later
+  genLI();   
   CodeAddress labelCheck = getCurrentCodeAddress();
 
   eat(KW_TO);
   Type* type2 = compileExpression();
   checkTypeEquality(var->varAttrs->type, type2);
-  
-  genLE();                 // Stack: [addr, bool]
-  Instruction* fj = genFJ(DC_VALUE); // Stack: [addr] (nếu False nhảy Exit)
-
+  genLE();                
+  Instruction* fj = genFJ(DC_VALUE); 
   eat(KW_DO);
-  compileStatement();      // Thực hiện thân vòng lặp
-
-  // Tăng biến đếm: var := var + 1
-  genCV();                 // Stack: [addr, addr]
-  genCV();                 // Stack: [addr, addr, addr]
-  genLI();                 // Stack: [addr, addr, val]
-  genLC(1);                // Stack: [addr, addr, val, 1]
-  genAD();                 // Stack: [addr, addr, val+1]
-  genST();                 // Store. Stack: [addr]
-
-  // [FIX] Update to match Reference Binary structure
-  // The reference loads the value here (CV, LI) and jumps directly to the check
+  compileStatement();   
   genCV();                 
-  genLI();                 // Replaces genDCT(1) - opcode 0x03 matches reference
-
-  genJ(labelCheck);        // [FIX] Jump to labelCheck instead of labelLoop
-
-  updateFJ(fj, getCurrentCodeAddress()); // Cập nhật nhãn thoát
-  genDCT(1);               // Dọn dẹp stack: Xóa địa chỉ var còn sót lại
+  genCV();             
+  genLI();                
+  genLC(1);             
+  genAD();                
+  genST();    
+  genCV();                 
+  genLI();                 
+  genJ(labelCheck);       
+  updateFJ(fj, getCurrentCodeAddress()); 
+  genDCT(1);             
 }
 
 void compileArgument(Object* param) {
@@ -804,12 +787,12 @@ Type* compileFactor(void) {
   case TK_NUMBER:
     eat(TK_NUMBER);
     type = intType;
-    genLC(currentToken->value); // [1] Nạp hằng số nguyên
+    genLC(currentToken->value); 
     break;
   case TK_CHAR:
     eat(TK_CHAR);
     type = charType;
-    genLC(currentToken->string[0]); // [1] Nạp hằng số ký tự
+    genLC(currentToken->string[0]); 
     break;
   case TK_IDENT:
     eat(TK_IDENT);
@@ -820,11 +803,11 @@ Type* compileFactor(void) {
       switch (obj->constAttrs->value->type) {
       case TP_INT:
         type = intType;
-        genLC(obj->constAttrs->value->intValue); // [1] Nạp giá trị hằng số định danh
+        genLC(obj->constAttrs->value->intValue); 
         break;
       case TP_CHAR:
         type = charType;
-        genLC(obj->constAttrs->value->charValue); // [1] Nạp giá trị hằng số định danh
+        genLC(obj->constAttrs->value->charValue); 
         break;
       default:
         break;
@@ -832,17 +815,16 @@ Type* compileFactor(void) {
       break;
     case OBJ_VARIABLE:
       if (obj->varAttrs->type->typeClass == TP_ARRAY) {
-        // Tính địa chỉ phần tử mảng, kết quả là địa chỉ nằm trên đỉnh stack
         type = compileIndexes(obj->varAttrs->type);
-        genLI(); // [3] Load Indirect: Lấy giá trị từ địa chỉ đó
+        genLI(); 
       } else {
         type = obj->varAttrs->type;
-        genVariableValue(obj); // [2] Nạp giá trị biến đơn
+        genVariableValue(obj);
       }
       break;
     case OBJ_PARAMETER:
       type = obj->paramAttrs->type;
-      genVariableValue(obj); // [2] Nạp giá trị tham số (xử lý cả tham biến/tham trị bên trong)
+      genVariableValue(obj); 
       break;
     case OBJ_FUNCTION:
       if (isPredefinedFunction(obj)) {
@@ -850,11 +832,8 @@ Type* compileFactor(void) {
         genPredefinedFunctionCall(obj);
       } else {
         compileArguments(obj->funcAttrs->paramList);
-        
-        // [4] Tính toán level difference (Static Link)
         level = 0;
         scope = symtab->currentScope;
-        // Duyệt ngược scope hiện tại cho đến khi gặp scope bao ngoài hàm được gọi
         while (scope != obj->funcAttrs->scope->outer) {
             level++;
             scope = scope->outer;

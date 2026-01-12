@@ -41,11 +41,9 @@ void genVariableAddress(Object* var) {
     if (var->paramAttrs->kind == PARAM_VALUE) {
       genLA(level, offset);
     } else {
-      // Tham chiếu (VAR parameter): giá trị của nó chính là địa chỉ
       genLV(level, offset); 
     }
   } else if (var->kind == OBJ_FUNCTION) {
-    // Biến trả về của hàm (nếu gán tên hàm = giá trị)
     genLA(0, 0); 
   }
 }
@@ -69,7 +67,6 @@ void genVariableValue(Object* var) {
     if (var->paramAttrs->kind == PARAM_VALUE) {
       genLV(level, offset);
     } else {
-      // Tham chiếu: load giá trị (địa chỉ), sau đó load indirect
       genLV(level, offset);
       genLI();
     }
